@@ -1,0 +1,159 @@
+using UnityEngine;
+using Naninovel;
+using Naninovel.UI;
+using UnityEngine.UI;
+using TMPro;
+
+namespace NaninovelSceneAssistant
+{
+	public interface ISceneAssistantUI : IManagedUI
+	{
+		void Show();
+	}
+	
+	public class SceneAssistantUI : CustomUI, ISceneAssistantUI
+	{
+		private SceneAssistantManager sceneAssistantManager;
+		public enum SceneAssistantTab { SceneAssistant, Variables, Scripts, Unlockables }
+		private SceneAssistantWindowMenu currentMenu;
+
+		[Header("Main elements")]
+		[SerializeField] private Toggle rollbackToggle;
+		[SerializeField] private ScriptableLabeledButton closeButton;
+		
+		[SerializeField] private TextMeshProUGUI scriptPlayerInfoBox;
+
+		[Header("Menus")]
+		[SerializeField] private SceneAssistantMenu sceneAssistantMenu;
+		[SerializeField] private VariablesMenu variablesMenu;
+		[SerializeField] private ScriptsMenu scriptsMenu;
+		[SerializeField] private UnlockablesMenu unlockablesMenu;
+
+		public Texture2D CursorTexture;
+		
+		private IInputManager inputManager;
+		private IScriptPlayer scriptPlayer;
+		private IStateManager stateManager;
+		private bool defaultRollbackValue;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			sceneAssistantManager = Engine.GetService<SceneAssistantManager>();
+			inputManager = Engine.GetService<IInputManager>();
+			scriptPlayer = Engine.GetService<IScriptPlayer>();
+			stateManager = Engine.GetService<IStateManager>();
+			currentMenu = sceneAssistantMenu;
+		}
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			closeButton.OnButtonClicked += Hide;
+			rollbackToggle.onValueChanged.AddListener(SetRollbackEnabled);
+			sceneAssistantManager.OnSceneAssistantReset += CheckIndex;
+		}
+
+		protected override void OnDisable()
+		{
+			base.OnDisable();
+			closeButton.OnButtonClicked -= Hide;
+			rollbackToggle.onValueChanged.RemoveListener(SetRollbackEnabled);
+		}
+
+		protected void CheckIndex()
+		{	
+			if(scriptPlayer.Playing) 
+			{
+				if(!scriptPlayer.Playlist.IsIndexValid(scriptPlayer.PlayedIndex+1))
+				{
+					scriptPlayerInfoBox.text = "End of script";
+				}
+				else if(!stateManager.CanRollbackTo(s => s.PlayerRollbackAllowed))
+				{
+					scriptPlayerInfoBox.text = "Rollback stack is empty";
+				}
+				else
+				{
+					scriptPlayerInfoBox.text = null;
+				}
+			}
+		}
+
+		protected override void HandleVisibilityChanged(bool visible)
+		{
+			base.HandleVisibilityChanged(visible);
+
+			if (visible)
+			{
+				defaultRollbackValue = inputManager.GetRollback().Enabled;
+			}
+			else
+			{
+				if(sceneAssistantManager != null && sceneAssistantManager.Initialized)
+				{
+					currentMenu.DestroyMenu();
+					sceneAssistantManager.DestroySceneAssistant();
+					inputManager.GetRollback().Enabled = defaultRollbackValue;
+				}
+			}
+		}
+
+		private void SetRollbackEnabled(bool toggle)
+		{
+			if(toggle) inputManager.GetRollback().Enabled = false;
+			else inputManager.GetRollback().Enabled = defaultRollbackValue;
+		}
+
+		public void ChangeTab(SceneAssistantTab sceneAssistantTab)
+		{
+			switch(sceneAssistantTab)
+			{
+				case SceneAssistantTab.SceneAssistant:
+					sceneAssistantMenu.gameObject.SetActive(true);
+					variablesMenu.gameObject.SetActive(false);
+					scriptsMenu.gameObject.SetActive(false);
+					unlockablesMenu.gameObject.SetActive(false);
+
+					currentMenu = sceneAssistantMenu;
+				break;
+
+				case SceneAssistantTab.Variables:
+					sceneAssistantMenu.gameObject.SetActive(false);
+					variablesMenu.gameObject.SetActive(true);
+					scriptsMenu.gameObject.SetActive(false);
+                    unlockablesMenu.gameObject.SetActive(false);
+
+                    currentMenu = variablesMenu;
+				break;
+
+				case SceneAssistantTab.Scripts:
+					sceneAssistantMenu.gameObject.SetActive(false);
+					variablesMenu.gameObject.SetActive(false);
+					scriptsMenu.gameObject.SetActive(true);
+                    unlockablesMenu.gameObject.SetActive(false);
+
+                    currentMenu = scriptsMenu;
+				break;
+
+                case SceneAssistantTab.Unlockables:
+                    sceneAssistantMenu.gameObject.SetActive(false);
+                    variablesMenu.gameObject.SetActive(false);
+                    scriptsMenu.gameObject.SetActive(false);
+                    unlockablesMenu.gameObject.SetActive(true);
+
+                    currentMenu = unlockablesMenu;
+                break;
+            }
+
+			if(sceneAssistantManager.IsAvailable) currentMenu.InitializeMenu();
+		} 
+		
+		public override void Show()
+		{
+			if(!sceneAssistantManager.Initialized) sceneAssistantManager.InitializeSceneAssistant();
+			currentMenu.InitializeMenu();
+			base.Show();
+		}
+	}
+}

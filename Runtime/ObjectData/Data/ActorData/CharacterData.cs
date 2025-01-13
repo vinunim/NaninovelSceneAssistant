@@ -5,7 +5,7 @@ using Naninovel.Commands;
 
 namespace NaninovelSceneAssistant
 {
-	public class CharacterData : OrthoActorData<CharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration, CharacterState, CharacterMetadata.Pose>
+	public class CharacterData : OrthoActorData<ICharacterManager, ICharacterActor, CharacterMetadata, CharactersConfiguration, CharacterState, CharacterMetadata.Pose>
 	{
 		public CharacterData(string id) : base(id) { }
 		

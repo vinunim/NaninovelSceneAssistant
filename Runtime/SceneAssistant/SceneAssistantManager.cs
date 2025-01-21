@@ -166,7 +166,7 @@ namespace NaninovelSceneAssistant
 		private async UniTask LocateScriptsAsync()
 		{
 			var scriptManager = Engine.GetService<IScriptManager>();
-			var scripts = scriptManager.ScriptLoader.LoadAll().Result;
+			var scripts = await scriptManager.ScriptLoader.LoadAll();
 
 			foreach (var resource in scripts)
 			{

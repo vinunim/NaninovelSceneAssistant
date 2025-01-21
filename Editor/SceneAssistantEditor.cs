@@ -79,11 +79,13 @@ namespace NaninovelSceneAssistant
             resetIcon = EditorGUIUtility.IconContent("d_Refresh@2x");
 
             if (sceneAssistantManager.Initialized) return;
-            sceneAssistantManager.InitializeSceneAssistant();
+            sceneAssistantManager.InitializeSceneAssistant().ContinueWith(() =>
+            {
+                scriptFoldouts = new bool[sceneAssistantManager.ScriptDataList.Count];
+            });
             sceneAssistantManager.OnSceneAssistantCleared += HandleSceneAssistantCleared;
             sceneAssistantManager.OnSceneAssistantReset += HandleSceneAssistantReset;
 
-            scriptFoldouts = new bool[sceneAssistantManager.ScriptDataList.Count];
             defaultRollbackValue = inputManager.GetRollback().Enabled;
 
             int temp = EditorPrefs.GetInt("NaniAssistantTab", -1);

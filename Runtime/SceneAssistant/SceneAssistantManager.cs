@@ -61,7 +61,7 @@ namespace NaninovelSceneAssistant
 			stateManager = Engine.GetService<IStateManager>();
 			uiManager = Engine.GetService<IUIManager>();
 		}
-		public virtual async void InitializeSceneAssistant()
+		public virtual async UniTask InitializeSceneAssistant()
         {
             if (Initialized) return;
             GetServices();

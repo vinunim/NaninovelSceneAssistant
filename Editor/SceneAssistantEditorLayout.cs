@@ -249,10 +249,17 @@ namespace NaninovelSceneAssistant
 			{
 				Engine.GetService<IUIManager>()?.GetUI<ITitleUI>()?.Hide(); 
 				using (await LoadingScreen.Show())
-					await stateManager.ResetState(
-						async () => await scriptPlayer.LoadAndPlay(script));
-				if (!string.IsNullOrEmpty(label))
-					await scriptPlayer.Rewind(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
+					if (string.IsNullOrEmpty(label) == true)
+					{
+						await stateManager.ResetState(
+							async () => await scriptPlayer.LoadAndPlay(script));
+					}
+					else
+					{
+						// await scriptPlayer.Rewind(scriptPlayer.PlayedScript.GetLineIndexForLabel(label));
+						await stateManager.ResetState(
+							async () => await scriptPlayer.LoadAndPlayAtLabel(script, label));
+					}
 			}
 		}
 

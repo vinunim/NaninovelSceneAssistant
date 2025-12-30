@@ -26,14 +26,8 @@ namespace NaninovelSceneAssistant
 		protected string[] GetPrinterAppearances() 
 		{
 			var printerPanel = GetGameObject().GetComponent<UITextPrinterPanel>();
-			var printerType = printerPanel.GetType();
-			
-			FieldInfo fieldInfo = printerType.GetField("appearances", BindingFlags.NonPublic | BindingFlags.Instance);
-			if(fieldInfo == null) return null;
-			
-			List<CanvasGroup> appearanceList = (List<CanvasGroup>)fieldInfo.GetValue(GetGameObject().GetComponent(printerType));
-			return appearanceList.Select(c => c.name).ToArray();
-		}	
+			return printerPanel.GetAppearances().ToArray();
+		}
 		#endif
 		
 		protected override void GetAppearanceData()
